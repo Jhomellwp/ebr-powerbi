@@ -172,31 +172,210 @@ public sealed class EbrBatchReadStore : IEbrBatchReadStore
             .FirstOrDefaultAsync(x => x.BatchID == batchId, cancellationToken);
         var uht = await _db.Set<EbrUhtEvaporator>().AsNoTracking()
             .FirstOrDefaultAsync(x => x.BatchID == batchId, cancellationToken);
-        var evapParam = await _db.Set<EbrEvapParamater>().AsNoTracking()
+        var dryer = await _db.Set<EbrDryerParameter>().AsNoTracking()
             .FirstOrDefaultAsync(x => x.BatchID == batchId, cancellationToken);
-        var evapLog = await _db.Set<EbrEvapLogSheet>().AsNoTracking()
+        var drying = await _db.Set<EbrDryingAndDryerLogSheet>().AsNoTracking()
             .FirstOrDefaultAsync(x => x.BatchID == batchId, cancellationToken);
-        var dryerParam = await _db.Set<EbrDryerParameter>().AsNoTracking()
-            .FirstOrDefaultAsync(x => x.BatchID == batchId, cancellationToken);
-        var dryerLog = await _db.Set<EbrDryingAndDryerLogSheet>().AsNoTracking()
-            .FirstOrDefaultAsync(x => x.BatchID == batchId, cancellationToken);
+
+        var blendSamples = blend is null
+            ? new List<EbrBlendSampleTable>()
+            : await _db.Set<EbrBlendSampleTable>().AsNoTracking()
+                .Where(x => x.BlendID == blend.Id)
+                .OrderBy(x => x.Id)
+                .ToListAsync(cancellationToken);
+
+        var wsvSamples = wsv is null
+            ? new List<AppWorksheetSampleRowDto>()
+            : await _db.Set<EbrWsvSlnSampleTable>().AsNoTracking()
+                .Where(x => x.WSVSlnID == wsv.Id)
+                .OrderBy(x => x.Id)
+                .Select(x => new AppWorksheetSampleRowDto(
+                    x.SampleNumber,
+                    x.Test,
+                    x.Specification,
+                    x.SpecificationForInformation,
+                    x.Result))
+                .ToListAsync(cancellationToken);
+
+        var fptSamples = fpt is null
+            ? new List<EbrFptSampleTable>()
+            : await _db.Set<EbrFptSampleTable>().AsNoTracking()
+                .Where(x => x.FPTID == fpt.Id)
+                .OrderBy(x => x.Id)
+                .ToListAsync(cancellationToken);
+
+        var uhtSamples = uht is null
+            ? new List<AppWorksheetSampleRowDto>()
+            : await _db.Set<EbrUhtSampleTable>().AsNoTracking()
+                .Where(x => x.UHTEvaporatorID == uht.Id)
+                .OrderBy(x => x.Id)
+                .Select(x => new AppWorksheetSampleRowDto(
+                    x.Time,
+                    x.HMIDensity,
+                    x.TotalSolids,
+                    x.Viscosity,
+                    JoinParts("Temp:", x.Viscosity2, "Torque:", x.Viscosity4, "Speed:", x.Viscosity5)))
+                .ToListAsync(cancellationToken);
+
+        var dryerRows = dryer is null
+            ? new List<AppWorksheetSampleRowDto>()
+            : await (
+                    from row in _db.Set<EbrDryerParameterTable>().AsNoTracking()
+                    join param in _db.Set<EbrDryerParameterParameter>().AsNoTracking()
+                        on row.ParameterID equals param.Id into pset
+                    from param in pset.DefaultIfEmpty()
+                    where row.DryerParameterID == dryer.Id
+                    orderby row.Id
+                    select new AppWorksheetSampleRowDto(
+                        param != null ? param.Parameter : null,
+                        row.UOM,
+                        row.PresetValue,
+                        row.PreTrialValue,
+                        row.PostTrialValue))
+                .ToListAsync(cancellationToken);
+
+        var dryingPerformRows = drying is null
+            ? new List<AppWorksheetSampleRowDto>()
+            : await _db.Set<EbrDryingAndDryerPerformTable>().AsNoTracking()
+                .Where(x => x.DryingAndDryerLogSheetID == drying.Id)
+                .OrderBy(x => x.Id)
+                .Select(x => new AppWorksheetSampleRowDto(
+                    x.SampleNo,
+                    x.Test,
+                    x.Specification,
+                    x.BOB,
+                    JoinParts("MOB:", x.MOB, "EOB:", x.EOB)))
+                .ToListAsync(cancellationToken);
+
+        var dryingLogRows = drying is null
+            ? new List<AppWorksheetSampleRowDto>()
+            : await _db.Set<EbrDryingAndDryerLogSheetTable>().AsNoTracking()
+                .Where(x => x.DryingAndDryerLogSheetID == drying.Id)
+                .OrderBy(x => x.Id)
+                .Select(x => new AppWorksheetSampleRowDto(
+                    x.Description,
+                    x.Unit,
+                    x.Freq,
+                    x.Product1,
+                    JoinParts(x.Product2, x.Product3, x.Product4, x.Product5, x.Product6)))
+                .ToListAsync(cancellationToken);
+
+        var dryingCollectRows = drying is null
+            ? new List<AppWorksheetSampleRowDto>()
+            : await _db.Set<EbrDryingAndDryerCollectSampleTable>().AsNoTracking()
+                .Where(x => x.DryingAndDryerLogSheetID == drying.Id)
+                .OrderBy(x => x.Id)
+                .Select(x => new AppWorksheetSampleRowDto(
+                    x.SampleNo,
+                    "Bulk Density",
+                    null,
+                    null,
+                    x.BulkDensity))
+                .ToListAsync(cancellationToken);
 
         var sections = new List<AppWorksheetSectionDto>
         {
             new("PIF", pif?.Comments, pifSamples),
             new("WSM", wsm?.Comments, wsmSamples),
             new("PIW", piw?.Comments, piwSamples),
-            new("Blending", blend?.Comments, []),
-            new("WSV Solution", wsv?.Comments, []),
-            new("FPT", fpt?.Comments, []),
-            new("UHT Evaporator", uht?.Comments, []),
-            new("Evap Parameters", evapParam?.Comments, []),
-            new("Evap Log Sheet", evapLog?.Comments, []),
-            new("Dryer Parameters", dryerParam?.Comments, []),
-            new("Drying and Dryer Log", dryerLog?.Comments, [])
+            new("Blending", blend?.Comments, BuildBlendRows(blend, blendSamples)),
+            new("WSV Solution", wsv?.Comments, wsvSamples),
+            new("FPT", fpt?.Comments, BuildFptRows(fpt, fptSamples)),
+            new("UHT Evaporator", uht?.Comments, uhtSamples),
+            new("Dryer Parameters", null, dryerRows),
+            new("Drying and Dryer Log", null, BuildDryingRows(drying, dryingPerformRows, dryingLogRows, dryingCollectRows))
         };
 
         return new AppWorksheetDto(sections);
+    }
+
+    private static IReadOnlyList<AppWorksheetSampleRowDto> BuildBlendRows(EbrBlend? blend, IReadOnlyList<EbrBlendSampleTable> sampleRows)
+    {
+        var rows = new List<AppWorksheetSampleRowDto>
+        {
+            new("pH specification (at 25 degC)", blend?._4PhSpecification, null, null, null),
+            new("Target pH (at 25 degC)", blend?._4TargetPh, null, null, null),
+            new("pH before correction (at 25 degC)", blend?._4PhBeforeCorrection, null, null, null),
+            new("pH correction needed?", blend?._4PhCorrectionNeeded, null, null, null),
+            new("Final pH after correction", blend?._4FinalPHAfterCorrection, null, null, null),
+            new("Weight of Sample Drawn (g)", blend?.WeightOfSampleDrawnA, blend?.WeightOfSampleDrawnB, blend?.WeightOfSampleDrawnC, null),
+            new("Weight of 5% KOH used (g)", blend?.WeightOfKOGUsedA, blend?.WeightOfKOGUsedB, blend?.WeightOfKOGUsedC, null),
+            new("Weight of Hydration Tank (kg)", blend?.WeightOfFPTankA, blend?.WeightOfFPTankB, blend?.WeightOfFPTankC, null),
+            new("Weight of 5% KOH needed for tank (kg)", blend?.WeightOfKONeededA, blend?.WeightOfKONeededB, blend?.WeightOfKONeededC, null),
+            new("pH after correction", blend?.PhAfterCorrectionA, blend?.PhAfterCorrectionB, blend?.PhAfterCorrectionC, null),
+            new("Actual Quantity weighed (kg)", blend?.PhRecordedByIdA?.ToString(), blend?.PhRecordedByIdB?.ToString(), blend?.PhRecordedByIdC?.ToString(), null)
+        };
+
+        for (var i = 0; i < sampleRows.Count; i++)
+        {
+            var s = sampleRows[i];
+            rows.Add(new(
+                string.IsNullOrWhiteSpace(s.SampleNumber) ? $"Blend/Hydration Sample Row {i + 1}" : s.SampleNumber,
+                s.Test,
+                s.Specification,
+                s.SpecificationForInformation,
+                JoinParts("HYD-1:", s.ResultHYD1, "HYD-2:", s.ResultHYD2, "Result:", s.Result)));
+        }
+
+        return rows;
+    }
+
+    private static IReadOnlyList<AppWorksheetSampleRowDto> BuildFptRows(EbrFpt? fpt, IReadOnlyList<EbrFptSampleTable> sampleRows)
+    {
+        var rows = new List<AppWorksheetSampleRowDto>
+        {
+            new("pH specification (at 25 degC)", fpt?._2PhSpecification, null, null, null),
+            new("Target pH (at 25 degC)", fpt?._2TargetPh, null, null, null),
+            new("pH before correction (at 25 degC)", fpt?._2PhBeforeCorrection, null, null, null),
+            new("pH correction needed?", fpt?._2PhCorrectionNeeded, null, null, null),
+            new("Final pH after correction", fpt?._2PhAfterCorrection, null, null, null),
+            new("Weight of Sample Drawn (g)", fpt?.WeightOfSampleDrawnA, fpt?.WeightOfSampleDrawnB, fpt?.WeightOfSampleDrawnC, null),
+            new("Weight of 5% KOH used (g)", fpt?.WeightOfKOGUsedA, fpt?.WeightOfKOGUsedB, fpt?.WeightOfKOGUsedC, null),
+            new("Weight of Hydration Tank (kg)", fpt?.WeightOfFPTankA, fpt?.WeightOfFPTankB, fpt?.WeightOfFPTankC, null),
+            new("Weight of 5% KOH needed for tank (kg)", fpt?.WeightOfKONeededA, fpt?.WeightOfKONeededB, fpt?.WeightOfKONeededC, null),
+            new("pH after correction", fpt?.PhAfterCorrectionA, fpt?.PhAfterCorrectionB, fpt?.PhAfterCorrectionC, null),
+            new("Actual Quantity weighed (kg)", fpt?.PhRecordedByIdA?.ToString(), fpt?.PhRecordedByIdB?.ToString(), fpt?.PhRecordedByIdC?.ToString(), null)
+        };
+
+        rows.AddRange(sampleRows.Select(s => new AppWorksheetSampleRowDto(
+            s.SampleNumber,
+            s.Test,
+            s.Specification,
+            s.SpecificationForInformation,
+            JoinParts("Result:", s.Result, "Result2:", s.Result2))));
+
+        return rows;
+    }
+
+    private static IReadOnlyList<AppWorksheetSampleRowDto> BuildDryingRows(
+        EbrDryingAndDryerLogSheet? drying,
+        IReadOnlyList<AppWorksheetSampleRowDto> performRows,
+        IReadOnlyList<AppWorksheetSampleRowDto> logRows,
+        IReadOnlyList<AppWorksheetSampleRowDto> collectRows)
+    {
+        var rows = new List<AppWorksheetSampleRowDto>
+        {
+            new("Orifice Size", drying?.OrificeSize, null, null, null),
+            new("Core", drying?.Core, null, null, null),
+            new("Lance Position", drying?.LancePosition, null, null, null),
+            new("Hourly Parameter Water/Product", drying?.Water, drying?.Product1, drying?.Product2, JoinParts(drying?.Product3, drying?.Product4, drying?.Product5, drying?.Product6)),
+            new("End Time", drying?.EndTime, null, null, null)
+        };
+
+        rows.AddRange(performRows);
+        rows.AddRange(logRows);
+        rows.AddRange(collectRows);
+        return rows;
+    }
+
+    private static string? JoinParts(params string?[] values)
+    {
+        var parts = values
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Select(v => v!.Trim())
+            .ToList();
+
+        return parts.Count == 0 ? null : string.Join(" | ", parts);
     }
 
     /// <inheritdoc />

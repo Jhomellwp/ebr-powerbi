@@ -1,5 +1,13 @@
-<main class="app-layout app-layout--guest">
-  <div class="app-layout__guest-shell">
+@let showSidebar = (showSidebar$ | async);
+<div class="app-layout" [class.app-layout--guest]="showSidebar !== true">
+  @if (showSidebar === true) {
+    <app-sidebar></app-sidebar>
+  }
+  <main class="app-layout__main" [class.app-layout__guest-shell]="showSidebar !== true">
     <router-outlet></router-outlet>
-  </div>
-</main>
+  </main>
+</div>
+
+<div class="theme-fab">
+  <app-theme-toggle></app-theme-toggle>
+</div>

@@ -173,7 +173,7 @@ public sealed class EbrEvapParamaterConfiguration : IEntityTypeConfiguration<Ebr
 {
     public void Configure(EntityTypeBuilder<EbrEvapParamater> builder)
     {
-        builder.ToTable("EvapParamater");
+        builder.ToTable("EvapParamaters");
         builder.HasKey(x => x.Id);
     }
 }
@@ -191,7 +191,7 @@ public sealed class EbrDryerParameterConfiguration : IEntityTypeConfiguration<Eb
 {
     public void Configure(EntityTypeBuilder<EbrDryerParameter> builder)
     {
-        builder.ToTable("DryerParameter");
+        builder.ToTable("DryerParameters");
         builder.HasKey(x => x.Id);
     }
 }
@@ -201,6 +201,87 @@ public sealed class EbrDryingAndDryerLogSheetConfiguration : IEntityTypeConfigur
     public void Configure(EntityTypeBuilder<EbrDryingAndDryerLogSheet> builder)
     {
         builder.ToTable("DryingAndDryerLogSheet");
+        builder.HasKey(x => x.Id);
+    }
+}
+
+public sealed class EbrBlendSampleTableConfiguration : IEntityTypeConfiguration<EbrBlendSampleTable>
+{
+    public void Configure(EntityTypeBuilder<EbrBlendSampleTable> builder)
+    {
+        builder.ToTable("BlendSampleTable");
+        builder.HasKey(x => x.Id);
+    }
+}
+
+public sealed class EbrWsvSlnSampleTableConfiguration : IEntityTypeConfiguration<EbrWsvSlnSampleTable>
+{
+    public void Configure(EntityTypeBuilder<EbrWsvSlnSampleTable> builder)
+    {
+        builder.ToTable("WSVSlnSampleTable");
+        builder.HasKey(x => x.Id);
+    }
+}
+
+public sealed class EbrFptSampleTableConfiguration : IEntityTypeConfiguration<EbrFptSampleTable>
+{
+    public void Configure(EntityTypeBuilder<EbrFptSampleTable> builder)
+    {
+        builder.ToTable("FPTSampleTable");
+        builder.HasKey(x => x.Id);
+    }
+}
+
+public sealed class EbrUhtSampleTableConfiguration : IEntityTypeConfiguration<EbrUhtSampleTable>
+{
+    public void Configure(EntityTypeBuilder<EbrUhtSampleTable> builder)
+    {
+        builder.ToTable("UHTSampleTable");
+        builder.HasKey(x => x.Id);
+    }
+}
+
+public sealed class EbrDryerParameterTableConfiguration : IEntityTypeConfiguration<EbrDryerParameterTable>
+{
+    public void Configure(EntityTypeBuilder<EbrDryerParameterTable> builder)
+    {
+        builder.ToTable("DryerParameterTables");
+        builder.HasKey(x => x.Id);
+    }
+}
+
+public sealed class EbrDryerParameterParameterConfiguration : IEntityTypeConfiguration<EbrDryerParameterParameter>
+{
+    public void Configure(EntityTypeBuilder<EbrDryerParameterParameter> builder)
+    {
+        builder.ToTable("DryerParameterParameter");
+        builder.HasKey(x => x.Id);
+    }
+}
+
+public sealed class EbrDryingAndDryerPerformTableConfiguration : IEntityTypeConfiguration<EbrDryingAndDryerPerformTable>
+{
+    public void Configure(EntityTypeBuilder<EbrDryingAndDryerPerformTable> builder)
+    {
+        builder.ToTable("DryingAndDryerPerformTable");
+        builder.HasKey(x => x.Id);
+    }
+}
+
+public sealed class EbrDryingAndDryerLogSheetTableConfiguration : IEntityTypeConfiguration<EbrDryingAndDryerLogSheetTable>
+{
+    public void Configure(EntityTypeBuilder<EbrDryingAndDryerLogSheetTable> builder)
+    {
+        builder.ToTable("DryingAndDryerLogSheetTable");
+        builder.HasKey(x => x.Id);
+    }
+}
+
+public sealed class EbrDryingAndDryerCollectSampleTableConfiguration : IEntityTypeConfiguration<EbrDryingAndDryerCollectSampleTable>
+{
+    public void Configure(EntityTypeBuilder<EbrDryingAndDryerCollectSampleTable> builder)
+    {
+        builder.ToTable("DryingAndDryerCollectSampleTable");
         builder.HasKey(x => x.Id);
     }
 }

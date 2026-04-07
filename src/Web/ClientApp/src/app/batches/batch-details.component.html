@@ -36,28 +36,499 @@
           @if (section.comments) {
             <p><strong>Comments:</strong> {{ section.comments }}</p>
           }
-          @if (section.samples.length === 0) {
+          @if (isWiSection(section)) {
+            <h4 class="batch-details__subhead">{{ wiInstruction(section) }}</h4>
+
+            @if (wiIsSimpleCommentSection(section)) {
+              <div class="batch-details__table-wrap">
+                <table class="batch-details__table">
+                  <thead>
+                    <tr>
+                      <th>Observation and Comments</th>
+                      <th>Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Observation and Comments</td>
+                      <td>{{ wiObservation(section) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            } @else if (wiIsPhSection(section)) {
+              <div class="batch-details__table-wrap">
+                <table class="batch-details__table">
+                  <thead>
+                    <tr>
+                      <th>pH specification (at 25 degC)</th>
+                      <th>Target pH (at 25 degC)</th>
+                      <th>pH before correction (at 25 degC)</th>
+                      <th>pH correction needed?</th>
+                      <th>Final pH after correction</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>{{ wiPhSummaryRow(section).sampleNumber }}</td>
+                      <td>{{ wiPhSummaryRow(section).test }}</td>
+                      <td>{{ wiPhSummaryRow(section).specification }}</td>
+                      <td>{{ wiPhSummaryRow(section).specificationForInformationOnly }}</td>
+                      <td>{{ wiPhSummaryRow(section).result }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <h5 class="batch-details__subhead2">Titration</h5>
+              <div class="batch-details__table-wrap">
+                <table class="batch-details__table">
+                  <thead>
+                    <tr>
+                      <th>Field</th>
+                      <th>Titration A</th>
+                      <th>Titration B</th>
+                      <th>Titration C</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (r of wiPhTitrationRows(section); track $index) {
+                      <tr>
+                        <td>{{ r.sampleNumber }}</td>
+                        <td>{{ r.test }}</td>
+                        <td>{{ r.specification }}</td>
+                        <td>{{ r.specificationForInformationOnly }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+
+              <h5 class="batch-details__subhead2">Observation and Comments</h5>
+              <div class="batch-details__table-wrap">
+                <table class="batch-details__table">
+                  <tbody>
+                    <tr>
+                      <td>Observation and Comments</td>
+                      <td>{{ wiObservation(section) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            } @else if (wiIsEvaporator(section)) {
+              <div class="batch-details__table-wrap">
+                <table class="batch-details__table">
+                  <thead>
+                    <tr>
+                      <th>Parameter</th>
+                      <th>Recording 1</th>
+                      <th>Recording 2</th>
+                      <th>Recording 3</th>
+                      <th>FPT (Concentrate)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (r of wiEvaporatorRows(section); track $index) {
+                      <tr>
+                        <td>{{ r.sampleNumber }}</td>
+                        <td>{{ r.test }}</td>
+                        <td>{{ r.specification }}</td>
+                        <td>{{ r.specificationForInformationOnly }}</td>
+                        <td>{{ r.result }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else if (wiIsDryer(section)) {
+              <div class="batch-details__table-wrap">
+                <table class="batch-details__table">
+                  <thead>
+                    <tr>
+                      <th>Dryer Field</th>
+                      <th>Value</th>
+                      <th>Extra 1</th>
+                      <th>Extra 2</th>
+                      <th>Extra 3</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (r of wiDryerRows(section); track $index) {
+                      <tr>
+                        <td>{{ r.sampleNumber }}</td>
+                        <td>{{ r.test }}</td>
+                        <td>{{ r.specification }}</td>
+                        <td>{{ r.specificationForInformationOnly }}</td>
+                        <td>{{ r.result }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <p class="batch-details__status">No WI rows yet.</p>
+            }
+          } @else if (isPifSection(section) || isWsmSection(section) || isPiwSection(section) || isWsvSection(section)) {
+            <h4 class="batch-details__subhead">
+              @if (isPifSection(section)) { 8) Collect PIF samples for testing }
+              @if (isWsmSection(section)) { 8) Collect WSM samples for testing }
+              @if (isPiwSection(section)) { 4) Collect PIW samples for testing }
+              @if (isWsvSection(section)) { 4) Collect WSV samples for testing }
+            </h4>
+            <div class="batch-details__table-wrap">
+              <table class="batch-details__table">
+                <thead>
+                  <tr>
+                    <th>Sample no.</th>
+                    <th>Test</th>
+                    <th>Specification</th>
+                    <th>Specification for information only (NA if specification not listed)</th>
+                    <th>Result</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (r of sectionRows(section); track $index) {
+                    <tr>
+                      <td>{{ r.sampleNumber }}</td>
+                      <td>{{ r.test }}</td>
+                      <td>{{ r.specification }}</td>
+                      <td>{{ r.specificationForInformationOnly }}</td>
+                      <td>{{ r.result }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else if (isBlendingSection(section)) {
+            <h4 class="batch-details__subhead">4) After 30 minutes of mixing, collect a sample of liquid mix for pH testing</h4>
+            <div class="batch-details__table-wrap">
+              <table class="batch-details__table">
+                <thead>
+                  <tr>
+                    <th>Field</th>
+                    <th>Value / A</th>
+                    <th>B</th>
+                    <th>C</th>
+                    <th>Result</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (r of blendingPreMixRows(section); track $index) {
+                    <tr>
+                      <td>{{ r.sampleNumber }}</td>
+                      <td>{{ r.test }}</td>
+                      <td>{{ r.specification }}</td>
+                      <td>{{ r.specificationForInformationOnly }}</td>
+                      <td>{{ r.result }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <h4 class="batch-details__subhead">9) Collect Blend/Hydration samples for testing</h4>
+            @for (g of blendingHydrationGroups(section); track g.title) {
+              <h5 class="batch-details__subhead2">{{ g.title }}</h5>
+              <div class="batch-details__table-wrap">
+                <table class="batch-details__table">
+                  <thead>
+                    <tr>
+                      <th>Test</th>
+                      <th>Specification</th>
+                      <th>Specification for information only</th>
+                      <th>Result (HYD-1)</th>
+                      <th>Result (HYD-2)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (r of g.rows; track $index) {
+                      <tr>
+                        <td>{{ r.test }}</td>
+                        <td>{{ r.specification }}</td>
+                        <td>{{ r.specificationForInformationOnly }}</td>
+                        <td>{{ blendHydValue(r, 'HYD-1') }}</td>
+                        <td>{{ blendHydValue(r, 'HYD-2') }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+
+            <h4 class="batch-details__subhead">10) Collect HTST samples for testing</h4>
+            <div class="batch-details__table-wrap">
+              <table class="batch-details__table">
+                <thead>
+                  <tr>
+                    <th>Test</th>
+                    <th>Specification</th>
+                    <th>Specification for information only (NA if specification not listed)</th>
+                    <th>Result</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (r of blendingHtstRows(section); track $index) {
+                    <tr>
+                      <td>{{ r.test }}</td>
+                      <td>{{ r.specification }}</td>
+                      <td>{{ r.specificationForInformationOnly }}</td>
+                      <td>{{ blendHydValue(r, 'Result') }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else if (isFptSection(section)) {
+            <h4 class="batch-details__subhead">2) Collect sample for pH testing</h4>
+            <div class="batch-details__table-wrap">
+              <table class="batch-details__table">
+                <thead>
+                  <tr>
+                    <th>Field</th>
+                    <th>Value / A</th>
+                    <th>B</th>
+                    <th>C</th>
+                    <th>Result</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (r of fptPreMixRows(section); track $index) {
+                    <tr>
+                      <td>{{ r.sampleNumber }}</td>
+                      <td>{{ r.test }}</td>
+                      <td>{{ r.specification }}</td>
+                      <td>{{ r.specificationForInformationOnly }}</td>
+                      <td>{{ r.result }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <h4 class="batch-details__subhead">10) Collect HTST samples for testing</h4>
+            <div class="batch-details__table-wrap">
+              <table class="batch-details__table">
+                <thead>
+                  <tr>
+                    <th>Test</th>
+                    <th>Specification</th>
+                    <th>Specification for information only (NA if specification not listed)</th>
+                    <th>Result</th>
+                    <th>Result 2</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (r of fptHtstRows(section); track $index) {
+                    <tr>
+                      <td>{{ r.test }}</td>
+                      <td>{{ r.specification }}</td>
+                      <td>{{ r.specificationForInformationOnly }}</td>
+                      <td>{{ taggedValue(r.result, 'Result') }}</td>
+                      <td>{{ taggedValue(r.result, 'Result2') }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else if (isUhtSection(section)) {
+            <h4 class="batch-details__subhead">9) Collect evaporator samples for testing</h4>
+            <div class="batch-details__table-wrap">
+              <table class="batch-details__table">
+                <thead>
+                  <tr>
+                    <th>Time (HHMM)</th>
+                    <th>HMI Density (kg/L)</th>
+                    <th>Total Solids (%)</th>
+                    <th>Viscosity (cP)</th>
+                    <th>Temperature (degC)</th>
+                    <th>Torque (%)</th>
+                    <th>Speed (RPM)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (r of uhtRows(section); track $index) {
+                    <tr>
+                      <td>{{ r.sampleNumber }}</td>
+                      <td>{{ r.test }}</td>
+                      <td>{{ r.specification }}</td>
+                      <td>{{ r.specificationForInformationOnly }}</td>
+                      <td>{{ taggedValue(r.result, 'Temp') }}</td>
+                      <td>{{ taggedValue(r.result, 'Torque') }}</td>
+                      <td>{{ taggedValue(r.result, 'Speed') }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else if (isDryerSection(section)) {
+            <h4 class="batch-details__subhead">13) Dryer Parameters</h4>
+            <div class="batch-details__table-wrap">
+              <table class="batch-details__table">
+                <thead>
+                  <tr>
+                    <th>Parameter</th>
+                    <th>UOM</th>
+                    <th>Pre-Set</th>
+                    <th>Pre-Trial Value</th>
+                    <th>Post-trial Recommended Value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (r of dryerParamRows(section); track $index) {
+                    <tr>
+                      <td>{{ r.sampleNumber }}</td>
+                      <td>{{ r.test }}</td>
+                      <td>{{ r.specification }}</td>
+                      <td>{{ r.specificationForInformationOnly }}</td>
+                      <td>{{ r.result }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            @if (dryerIptRows(section).length > 0) {
+              <h4 class="batch-details__subhead">IPT Testing Target</h4>
+              <div class="batch-details__table-wrap">
+                <table class="batch-details__table">
+                  <thead>
+                    <tr>
+                      <th>Test</th>
+                      <th>Specification</th>
+                      <th>Specification for information only</th>
+                      <th>Pre-trial Value</th>
+                      <th>Post-trial Recommended Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (r of dryerIptRows(section); track $index) {
+                      <tr>
+                        <td>{{ r.sampleNumber }}</td>
+                        <td>{{ r.test }}</td>
+                        <td>{{ r.specification }}</td>
+                        <td>{{ r.specificationForInformationOnly }}</td>
+                        <td>{{ r.result }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          } @else if (isDryingSection(section)) {
+            <h4 class="batch-details__subhead">4) Perform Dryer Sample testing as per SPP15-001 In-Process Testing</h4>
+            @if (dryingPerformRows(section).length > 0) {
+              <div class="batch-details__table-wrap">
+                <table class="batch-details__table">
+                  <thead>
+                    <tr>
+                      <th>Sample No.</th>
+                      <th>Test</th>
+                      <th>Specification</th>
+                      <th>BOB</th>
+                      <th>MOB</th>
+                      <th>EOB</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (r of dryingPerformRows(section); track $index) {
+                      <tr>
+                        <td>{{ r.sampleNumber }}</td>
+                        <td>{{ r.test }}</td>
+                        <td>{{ r.specification }}</td>
+                        <td>{{ r.specificationForInformationOnly }}</td>
+                        <td>{{ taggedValue(r.result, 'MOB') }}</td>
+                        <td>{{ taggedValue(r.result, 'EOB') }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+
+            @if (dryingInfoRows(section).length > 0) {
+              <h4 class="batch-details__subhead">Dryer Setup / Header Values</h4>
+              <div class="batch-details__table-wrap">
+                <table class="batch-details__table">
+                  <thead>
+                    <tr><th>Field</th><th>Value</th><th>Extra 1</th><th>Extra 2</th><th>Extra 3</th></tr>
+                  </thead>
+                  <tbody>
+                    @for (r of dryingInfoRows(section); track $index) {
+                      <tr>
+                        <td>{{ r.sampleNumber }}</td>
+                        <td>{{ r.test }}</td>
+                        <td>{{ r.specification }}</td>
+                        <td>{{ r.specificationForInformationOnly }}</td>
+                        <td>{{ r.result }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+
+            @if (dryingLogRows(section).length > 0) {
+              <h4 class="batch-details__subhead">Hourly Parameter Recording for Product</h4>
+              <div class="batch-details__table-wrap">
+                <table class="batch-details__table">
+                  <thead>
+                    <tr><th>Description</th><th>Unit</th><th>Freq/Type</th><th>Reading 1</th><th>Readings</th></tr>
+                  </thead>
+                  <tbody>
+                    @for (r of dryingLogRows(section); track $index) {
+                      <tr>
+                        <td>{{ r.sampleNumber }}</td>
+                        <td>{{ r.test }}</td>
+                        <td>{{ r.specification }}</td>
+                        <td>{{ r.specificationForInformationOnly }}</td>
+                        <td>{{ r.result }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+
+            @if (dryingCollectRows(section).length > 0) {
+              <h4 class="batch-details__subhead">5) Collect samples and perform other tests if specified</h4>
+              <div class="batch-details__table-wrap">
+                <table class="batch-details__table">
+                  <thead>
+                    <tr><th>Sample No.</th><th>Bulk Density</th><th>Moisture Content</th></tr>
+                  </thead>
+                  <tbody>
+                    @for (r of dryingCollectRows(section); track $index) {
+                      <tr>
+                        <td>{{ r.sampleNumber }}</td>
+                        <td>{{ r.result }}</td>
+                        <td>{{ r.specification || '—' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          } @else if (sectionRows(section).length === 0) {
             <p class="batch-details__status">No sample rows.</p>
           } @else {
             <div class="batch-details__table-wrap">
               <table class="batch-details__table">
                 <thead>
                   <tr>
-                    <th>Sample #</th>
-                    <th>Test</th>
-                    <th>Specification</th>
-                    <th>Info Only</th>
-                    <th>Result</th>
+                    <th>{{ sectionHeaders(section.name).sampleNumber }}</th>
+                    <th>{{ sectionHeaders(section.name).test }}</th>
+                    <th>{{ sectionHeaders(section.name).specification }}</th>
+                    <th>{{ sectionHeaders(section.name).specificationForInformationOnly }}</th>
+                    <th>{{ sectionHeaders(section.name).result }}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  @for (r of section.samples; track $index) {
+                  @for (r of sectionRows(section); track $index) {
                     <tr>
-                      <td>{{ r.sampleNumber || '—' }}</td>
-                      <td>{{ r.test || '—' }}</td>
-                      <td>{{ r.specification || '—' }}</td>
-                      <td>{{ r.specificationForInformationOnly || '—' }}</td>
-                      <td>{{ r.result || '—' }}</td>
+                      <td>{{ r.sampleNumber }}</td>
+                      <td>{{ r.test }}</td>
+                      <td>{{ r.specification }}</td>
+                      <td>{{ r.specificationForInformationOnly }}</td>
+                      <td>{{ r.result }}</td>
                     </tr>
                   }
                 </tbody>
