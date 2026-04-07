@@ -1,8 +1,10 @@
 using ebr_powerbi.Application.Common.Interfaces;
+using ebr_powerbi.Infrastructure;
 using ebr_powerbi.Infrastructure.Data;
 using ebr_powerbi.Infrastructure.Data.Interceptors;
 using ebr_powerbi.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
@@ -31,13 +33,15 @@ public static class DependencyInjection
 
         builder.Services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
 
-        builder.Services.AddScoped<ApplicationDbContextInitialiser>();
-
         builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
             .AddCookie(options =>
             {
                 options.LoginPath = "/login";
                 options.Cookie.Name = "ebr_powerbi_auth";
+                options.Cookie.Path = "/";
+                options.Cookie.SameSite = SameSiteMode.Lax;
+                options.Cookie.HttpOnly = true;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
                 options.SlidingExpiration = true;
             });
 
@@ -45,5 +49,7 @@ public static class DependencyInjection
 
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddTransient<IIdentityService, IdentityService>();
+        builder.Services.AddScoped<ILegacyUserAuthenticationService, LegacyUserAuthenticationService>();
+        builder.Services.AddScoped<IEbrBatchReadStore, EbrBatchReadStore>();
     }
 }

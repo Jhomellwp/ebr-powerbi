@@ -1,0 +1,170 @@
+<article class="batch-list">
+  <header class="batch-list__header">
+    <h1>Batches</h1>
+    <p class="batch-list__hint">Build: {{ buildMarker }} | loading={{ loading }} | rows={{ batches.length }}</p>
+    <p class="batch-list__hint">
+      Same scope as legacy EBR home (coversheets / file types). Use Type and PDRS for server scope; then narrow by Status or search on the loaded rows.
+    </p>
+  </header>
+
+  <div class="batch-list__filters">
+    <div class="batch-list__filter-field">
+      <label class="batch-list__filter-label" for="type-filter">Type</label>
+      <select
+        id="type-filter"
+        class="batch-list__select"
+        name="typeFilter"
+        [(ngModel)]="selectedType"
+        (ngModelChange)="onTypeChange()"
+        [attr.aria-busy]="loading"
+      >
+        @for (opt of typeFilterOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
+    </div>
+    <div class="batch-list__filter-field">
+      <label class="batch-list__filter-label" for="pdrs-filter">PDRS</label>
+      <select
+        id="pdrs-filter"
+        class="batch-list__select"
+        name="pdrsFilter"
+        [(ngModel)]="selectedPdrs"
+        (ngModelChange)="onSearchChange()"
+        [attr.aria-busy]="loading"
+        [disabled]="loading || loadError !== null"
+      >
+        <option value="">All PDRS</option>
+        @for (code of pdrsOptions; track code) {
+          <option [value]="code">{{ code }}</option>
+        }
+      </select>
+    </div>
+    <div class="batch-list__filter-field">
+      <label class="batch-list__filter-label" for="status-filter">Status</label>
+      <select
+        id="status-filter"
+        class="batch-list__select"
+        name="statusFilter"
+        [(ngModel)]="selectedStatusFilter"
+        (ngModelChange)="onStatusFilterChange()"
+        [disabled]="loadError !== null || batches.length === 0"
+      >
+        <option value="">All statuses</option>
+        <option value="__blank__">No status (blank)</option>
+        @for (s of statusFilterOptions; track s) {
+          <option [value]="s">{{ s }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  @if (loading) {
+    <p class="batch-list__status" aria-live="polite">Loading batches…</p>
+  }
+  @if (loadError) {
+    <p class="batch-list__error" role="alert">{{ loadError }}</p>
+  }
+
+  @if (!loading && !loadError && batches.length === 0) {
+    <p class="batch-list__empty">No batches match the current filters.</p>
+  }
+
+  @if (batches.length > 0) {
+    <div class="batch-table-toolbar">
+      <div class="batch-table-toolbar__search">
+        <label class="batch-list__filter-label" for="batch-search">Search table</label>
+        <input
+          id="batch-search"
+          type="search"
+          class="batch-list__input"
+          name="batchSearch"
+          [(ngModel)]="tableSearch"
+          (ngModelChange)="onSearchChange()"
+          placeholder="ID, type, batch #, PDRS, product, status, dates…"
+          autocomplete="off"
+        />
+      </div>
+      <div class="batch-table-toolbar__size">
+        <label class="batch-list__filter-label" for="page-size">Rows per page</label>
+        <select id="page-size" class="batch-list__select batch-list__select--narrow" [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange()">
+          @for (n of pageSizeOptions; track n) {
+            <option [ngValue]="n">{{ n }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    @if (totalFiltered === 0) {
+      <p class="batch-list__empty">No rows match your search.</p>
+    } @else {
+      <figure class="batch-table-figure" [attr.aria-busy]="loading">
+        <table class="batch-table">
+          <thead>
+            <tr>
+              <th scope="col" class="batch-table__col--id">ID</th>
+              <th scope="col">Type</th>
+              <th scope="col">Batch #</th>
+              <th scope="col">PDRS</th>
+              <th scope="col">Product name</th>
+              <th scope="col">Status</th>
+              <th scope="col">Release date</th>
+              <th scope="col">Retention due</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (b of pagedBatches; track batchRowTrackKey($index, b)) {
+              <tr>
+                <td class="batch-table__col--id">{{ b.id }}</td>
+                <td>{{ b.fileTypeName || '—' }}</td>
+                <td>
+                  @if (b.batchNumber) {
+                    <a [routerLink]="['/batches', b.id]">{{ b.batchNumber }}</a>
+                  } @else {
+                    —
+                  }
+                </td>
+                <td>{{ b.pdrsNumber || '—' }}</td>
+                <td class="batch-table__col--product">{{ b.productName || '—' }}</td>
+                <td>{{ b.status || '—' }}</td>
+                <td>{{ formatBatchDate(b.releaseDate) }}</td>
+                <td>{{ formatBatchDate(b.retentionDueDate) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </figure>
+    }
+
+    @if (totalFiltered > 0) {
+      <nav class="batch-pagination" aria-label="Table pagination">
+        <span class="batch-pagination__info">{{ tableRangeLabel }}</span>
+        <div class="batch-pagination__buttons">
+          <button type="button" class="batch-pagination__btn" (click)="goFirstPage()" [disabled]="pageIndex === 0 || loading">
+            First
+          </button>
+          <button type="button" class="batch-pagination__btn" (click)="goPrevPage()" [disabled]="pageIndex === 0 || loading">
+            Previous
+          </button>
+          <span class="batch-pagination__page">Page {{ pageIndex + 1 }} / {{ totalPages }}</span>
+          <button
+            type="button"
+            class="batch-pagination__btn"
+            (click)="goNextPage()"
+            [disabled]="pageIndex >= totalPages - 1 || loading"
+          >
+            Next
+          </button>
+          <button
+            type="button"
+            class="batch-pagination__btn"
+            (click)="goLastPage()"
+            [disabled]="pageIndex >= totalPages - 1 || loading"
+          >
+            Last
+          </button>
+        </div>
+      </nav>
+    }
+  }
+</article>

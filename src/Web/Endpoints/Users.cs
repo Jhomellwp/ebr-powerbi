@@ -1,10 +1,10 @@
 using System.Security.Claims;
-using ebr_powerbi.Infrastructure.Data;
+using ebr_powerbi.Application.Users.Commands.Login;
+using ebr_powerbi.Application.Users.Queries.GetCurrentUserInfo;
+using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace ebr_powerbi.Web.Endpoints;
 
@@ -21,66 +21,33 @@ public class Users : IEndpointGroup
 
     [EndpointSummary("Get current user info")]
     [EndpointDescription("Returns basic details for the currently authenticated user.")]
-    public static IResult Info(HttpContext httpContext)
+    public static async Task<IResult> Info(ISender sender)
     {
-        var isAuthenticated = httpContext.User.Identity?.IsAuthenticated ?? false;
-        if (!isAuthenticated)
-        {
-            return TypedResults.Ok(new { isAuthenticated = false });
-        }
-
-        var userId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var email = httpContext.User.FindFirstValue(ClaimTypes.Email);
-        var roles = httpContext.User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToArray();
-
-        return TypedResults.Ok(new
-        {
-            isAuthenticated = true,
-            userId,
-            email,
-            roles
-        });
+        var vm = await sender.Send(new GetCurrentUserInfoQuery());
+        return TypedResults.Ok(vm);
     }
 
     [EndpointSummary("Login with EBR identity user")]
     [EndpointDescription("Authenticates using the shared AspNetUsers table and issues an auth cookie.")]
     public static async Task<Results<Ok, UnauthorizedHttpResult>> Login(
         HttpContext httpContext,
-        ApplicationDbContext dbContext,
+        ISender sender,
         LoginRequest request)
     {
-        var user = await dbContext.AspNetUsers
-            .Where(u => u.Email == request.Email || u.UserName == request.Email)
-            .Select(u => new { u.Id, u.Email, u.UserName, u.PasswordHash })
-            .FirstOrDefaultAsync();
+        var result = await sender.Send(new LoginCommand(request.Email, request.Password));
 
-        if (user is null || string.IsNullOrWhiteSpace(user.PasswordHash))
+        if (!result.Succeeded || result.UserId is null)
         {
             return TypedResults.Unauthorized();
         }
-
-        var hasher = new PasswordHasher<object>(Microsoft.Extensions.Options.Options.Create(
-            new PasswordHasherOptions { CompatibilityMode = PasswordHasherCompatibilityMode.IdentityV2 }));
-        var verification = hasher.VerifyHashedPassword(new object(), user.PasswordHash, request.Password);
-        if (verification == PasswordVerificationResult.Failed)
-        {
-            return TypedResults.Unauthorized();
-        }
-
-        var roles = await (
-            from ur in dbContext.AspNetUserRoles
-            join r in dbContext.AspNetRoles on ur.RoleId equals r.Id
-            where ur.UserId == user.Id
-            select r.Name
-        ).ToListAsync();
 
         var claims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, user.Id),
-            new(ClaimTypes.Name, user.UserName ?? user.Email ?? string.Empty),
-            new(ClaimTypes.Email, user.Email ?? string.Empty)
+            new(ClaimTypes.NameIdentifier, result.UserId),
+            new(ClaimTypes.Name, result.UserName ?? result.Email ?? string.Empty),
+            new(ClaimTypes.Email, result.Email ?? string.Empty)
         };
-        claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+        claims.AddRange(result.Roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
         var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme));
         await httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);

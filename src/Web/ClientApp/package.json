@@ -3,10 +3,8 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "run-script-os",
+    "start": "ng serve",
     "prestart": "npm run generate-api",
-    "start:windows": "ng serve --port %PORT%",
-    "start:default": "ng serve --port $PORT",
     "prebuild": "npm run generate-api",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
@@ -26,7 +24,6 @@
     "@angular/router": "^21.1.5",
     "@picocss/pico": "^2.0.0",
     "lucide-angular": "^1.0.0",
-    "run-script-os": "^1.1.6",
     "rxjs": "~7.8.1",
     "tslib": "^2.5.0",
     "zone.js": "~0.16.0"

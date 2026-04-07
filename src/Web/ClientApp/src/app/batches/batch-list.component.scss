@@ -1,0 +1,204 @@
+.batch-list__header h1 {
+  margin-bottom: 0.25rem;
+}
+
+.batch-list__hint {
+  color: var(--pico-muted-color);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.batch-list__filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.batch-list__filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.batch-list__filter-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.batch-list__select {
+  min-width: 12rem;
+  max-width: 24rem;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.875rem;
+  border-radius: var(--pico-border-radius);
+  border: 1px solid var(--pico-muted-border-color);
+  background: var(--pico-background-color);
+  color: var(--pico-color);
+}
+
+.batch-list__select--narrow {
+  min-width: 5rem;
+  max-width: 8rem;
+}
+
+.batch-list__input {
+  min-width: 14rem;
+  max-width: 28rem;
+  width: 100%;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.875rem;
+  border-radius: var(--pico-border-radius);
+  border: 1px solid var(--pico-muted-border-color);
+  background: var(--pico-background-color);
+  color: var(--pico-color);
+}
+
+.batch-table-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.batch-table-toolbar__search {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1 1 14rem;
+}
+
+.batch-table-toolbar__size {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.batch-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--pico-muted-border-color);
+  font-size: 0.875rem;
+}
+
+.batch-pagination__info {
+  color: var(--pico-muted-color);
+}
+
+.batch-pagination__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.batch-pagination__btn {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8125rem;
+  border-radius: var(--pico-border-radius);
+  border: 1px solid var(--pico-muted-border-color);
+  background: var(--pico-card-background-color, var(--pico-background-color));
+  color: var(--pico-color);
+  cursor: pointer;
+}
+
+.batch-pagination__btn:hover:not(:disabled) {
+  border-color: var(--pico-primary);
+  color: var(--pico-primary);
+}
+
+.batch-pagination__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.batch-pagination__page {
+  padding: 0 0.35rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--pico-muted-color);
+}
+
+.batch-list__status {
+  color: var(--pico-muted-color);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.batch-list__error {
+  padding: 0.75rem 1rem;
+  border-radius: var(--pico-border-radius);
+  background: color-mix(in srgb, var(--pico-del-color, #c0392b) 12%, transparent);
+  border: 1px solid var(--pico-muted-border-color);
+  font-size: 0.85rem;
+  margin-bottom: 1.25rem;
+  color: var(--pico-del-color, #c0392b);
+}
+
+.batch-list__empty {
+  color: var(--pico-muted-color);
+  font-size: 0.9rem;
+  margin: 0 0 1rem;
+}
+
+.batch-table-figure {
+  margin: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: var(--pico-border-radius);
+  background: var(--pico-card-background-color, var(--pico-background-color));
+}
+
+.batch-table {
+  width: 100%;
+  margin-bottom: 0;
+  font-size: 0.875rem;
+  border-collapse: collapse;
+}
+
+.batch-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: color-mix(in srgb, var(--pico-muted-border-color) 35%, var(--pico-card-background-color, var(--pico-background-color)));
+  font-weight: 600;
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--pico-muted-border-color);
+}
+
+.batch-table tbody td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--pico-muted-border-color);
+  vertical-align: top;
+}
+
+.batch-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.batch-table tbody tr:hover td {
+  background: color-mix(in srgb, var(--pico-primary) 6%, transparent);
+}
+
+.batch-table__col--id {
+  font-variant-numeric: tabular-nums;
+  width: 4.5rem;
+  color: var(--pico-muted-color);
+}
+
+.batch-table__col--product {
+  min-width: 10rem;
+  max-width: 22rem;
+  word-break: break-word;
+}

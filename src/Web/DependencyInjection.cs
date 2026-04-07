@@ -30,7 +30,39 @@ public static class DependencyInjection
             options.AddOperationTransformer<IdentityApiOperationTransformer>();
         });
 
-        builder.Services.AddCors();
+        builder.Services.AddCors(options =>
+        {
+            options.AddDefaultPolicy(policy =>
+            {
+                // Cookie auth + Angular dev server on another port requires explicit origins and AllowCredentials.
+                // AllowAnyOrigin() is incompatible with credentials and breaks browsers (login / info XHR).
+                if (builder.Environment.IsDevelopment())
+                {
+                    policy
+                        .SetIsOriginAllowed(static origin =>
+                        {
+                            if (string.IsNullOrEmpty(origin)) return false;
+                            try
+                            {
+                                var uri = new Uri(origin);
+                                return string.Equals(uri.Host, "localhost", StringComparison.OrdinalIgnoreCase)
+                                       || uri.Host == "127.0.0.1";
+                            }
+                            catch
+                            {
+                                return false;
+                            }
+                        })
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+                }
+                else
+                {
+                    policy.AllowAnyHeader().AllowAnyMethod();
+                }
+            });
+        });
     }
 
     public static void AddKeyVaultIfConfigured(this IHostApplicationBuilder builder)

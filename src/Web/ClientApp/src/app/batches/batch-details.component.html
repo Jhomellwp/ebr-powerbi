@@ -1,0 +1,71 @@
+<article class="batch-details">
+  <header class="batch-details__header">
+    <a routerLink="/batches" class="batch-details__back">← Back to batches</a>
+    <h1>Batch Details</h1>
+    <p class="batch-details__status">Build: {{ buildMarker }} | loading={{ loading }} | hasBatch={{ batch !== null }}</p>
+  </header>
+
+  @if (loading) {
+    <p class="batch-details__status">Loading details...</p>
+  }
+
+  @if (loadError) {
+    <p class="batch-details__error">{{ loadError }}</p>
+  }
+
+  @if (!loading && !loadError && batch) {
+    <section class="batch-details__card">
+      <h2>{{ batch.productName || batch.headerTitle || 'Coversheet' }}</h2>
+      <dl class="batch-details__grid">
+        <div><dt>Batch ID</dt><dd>{{ batch.id }}</dd></div>
+        <div><dt>Batch Number</dt><dd>{{ batch.batchNumber || '—' }}</dd></div>
+        <div><dt>Type</dt><dd>{{ batch.fileTypeName || '—' }}</dd></div>
+        <div><dt>PDRS</dt><dd>{{ batch.pdrsNumber || '—' }}</dd></div>
+        <div><dt>Location</dt><dd>{{ batch.locationName || '—' }}</dd></div>
+        <div><dt>Status</dt><dd>{{ batch.status || '—' }}</dd></div>
+        <div><dt>Release Date</dt><dd>{{ formatBatchDate(batch.releaseDate) }}</dd></div>
+        <div><dt>Retention Due</dt><dd>{{ formatBatchDate(batch.retentionDueDate) }}</dd></div>
+        <div><dt>Archived</dt><dd>{{ batch.isArchived ? 'Yes' : 'No' }}</dd></div>
+      </dl>
+    </section>
+
+    @if (worksheet) {
+      @for (section of worksheet.sections; track section.name) {
+        <section class="batch-details__card">
+          <h3>{{ section.name }}</h3>
+          @if (section.comments) {
+            <p><strong>Comments:</strong> {{ section.comments }}</p>
+          }
+          @if (section.samples.length === 0) {
+            <p class="batch-details__status">No sample rows.</p>
+          } @else {
+            <div class="batch-details__table-wrap">
+              <table class="batch-details__table">
+                <thead>
+                  <tr>
+                    <th>Sample #</th>
+                    <th>Test</th>
+                    <th>Specification</th>
+                    <th>Info Only</th>
+                    <th>Result</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (r of section.samples; track $index) {
+                    <tr>
+                      <td>{{ r.sampleNumber || '—' }}</td>
+                      <td>{{ r.test || '—' }}</td>
+                      <td>{{ r.specification || '—' }}</td>
+                      <td>{{ r.specificationForInformationOnly || '—' }}</td>
+                      <td>{{ r.result || '—' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </section>
+      }
+    }
+  }
+</article>

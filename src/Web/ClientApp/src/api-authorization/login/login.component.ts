@@ -6,11 +6,13 @@ import { firstValueFrom } from 'rxjs';
 @Component({
   standalone: false,
   selector: 'app-login',
-  templateUrl: './login.component.html'
+  templateUrl: './login.component.html',
+  styleUrl: './login.component.scss'
 })
 export class LoginComponent {
   email = '';
   password = '';
+  rememberMe = false;
   invalid = false;
 
   constructor(
@@ -24,7 +26,7 @@ export class LoginComponent {
     this.invalid = false;
     try {
       await firstValueFrom(this.authService.login(this.email, this.password));
-      const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+      const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/batches';
       await this.router.navigateByUrl(returnUrl);
     } catch {
       this.invalid = true;

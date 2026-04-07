@@ -20,11 +20,14 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
-app.UseCors(static builder =>
-    builder.AllowAnyMethod()
-        .AllowAnyHeader()
-        .AllowAnyOrigin());
+// In Development, HTTPS redirection breaks the Angular dev-server proxy: HTTP → Kestrel gets 307 to https://7059,
+// the browser follows cross-origin, Set-Cookie targets :7059, but API calls from :4200 stay on the proxy → no session.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
+app.UseCors();
 
 app.UseFileServer();
 

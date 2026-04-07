@@ -1,0 +1,98 @@
+<aside
+  class="sidebar-rail"
+  [class.sidebar-rail--collapsed]="collapsed()"
+  aria-label="Main navigation"
+>
+  <header class="sidebar-rail__header">
+    <a routerLink="/batches" class="sidebar-rail__brand" [title]="collapsed() ? 'Abbott' : ''">
+      <img
+        class="sidebar-rail__brand-logo"
+        src="assets/img/abbott-logo-1.png"
+        width="198"
+        height="62"
+        alt="Abbott"
+      />
+    </a>
+    <button
+      type="button"
+      class="sidebar-rail__toggle"
+      (click)="toggle()"
+      [attr.aria-expanded]="!collapsed()"
+      aria-controls="sidebar-nav"
+      [attr.aria-label]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+    >
+      @if (collapsed()) {
+        <svg class="sidebar-rail__svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect width="18" height="18" x="3" y="3" rx="2" />
+          <path d="M9 3v18" />
+          <path d="m16 15-3-3 3-3" />
+        </svg>
+      } @else {
+        <svg class="sidebar-rail__svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect width="18" height="18" x="3" y="3" rx="2" />
+          <path d="M9 3v18" />
+          <path d="m13 8-4 4 4 4" />
+        </svg>
+      }
+    </button>
+  </header>
+
+  <p class="sidebar-rail__label">Batches</p>
+
+  <nav id="sidebar-nav" class="sidebar-rail__nav">
+    <a
+      routerLink="/batches"
+      class="sidebar-rail__link"
+      routerLinkActive="sidebar-rail__link--active"
+      [routerLinkActiveOptions]="{ paths: 'subset', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored' }"
+      [title]="collapsed() ? 'All batches' : ''"
+    >
+      <span class="sidebar-rail__icon-wrap" aria-hidden="true">
+        <svg class="sidebar-rail__svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect width="7" height="7" x="3" y="3" rx="1" />
+          <rect width="7" height="7" x="14" y="3" rx="1" />
+          <rect width="7" height="7" x="14" y="14" rx="1" />
+          <rect width="7" height="7" x="3" y="14" rx="1" />
+        </svg>
+      </span>
+      <span class="sidebar-rail__text">All batches</span>
+    </a>
+  </nav>
+
+  <footer class="sidebar-rail__footer">
+    @if (user()) {
+      <div
+        class="sidebar-rail__user"
+        [class.sidebar-rail__user--collapsed]="collapsed()"
+        [attr.title]="collapsed() ? userTooltip() : null"
+        [attr.aria-label]="collapsed() ? 'Signed in as ' + userTooltip() : null"
+      >
+        @if (collapsed()) {
+          <span class="sidebar-rail__user-avatar" aria-hidden="true">{{ userInitials() }}</span>
+        } @else {
+          <div class="sidebar-rail__user-lines">
+            <span class="sidebar-rail__user-name">{{ userDisplay() }}</span>
+            @if (userSubtitle()) {
+              <span class="sidebar-rail__user-email">{{ userSubtitle() }}</span>
+            }
+          </div>
+        }
+      </div>
+    }
+    <button
+      type="button"
+      class="sidebar-rail__logout"
+      (click)="logout($event)"
+      [title]="collapsed() ? 'Log out' : ''"
+    >
+      <span class="sidebar-rail__icon-wrap" aria-hidden="true">
+        <svg class="sidebar-rail__svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <polyline points="16 17 21 12 16 7" />
+          <line x1="21" x2="9" y1="12" y2="12" />
+        </svg>
+      </span>
+      <span class="sidebar-rail__text">Log out</span>
+    </button>
+  </footer>
+</aside>
